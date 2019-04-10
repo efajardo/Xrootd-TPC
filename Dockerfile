@@ -5,6 +5,7 @@ RUN yum -y install http://repo.opensciencegrid.org/osg/3.4/osg-3.4-el7-release-l
                    yum-plugin-priorities && \
     yum -y install cronie && \
     yum -y install osg-ca-certs && \
+    yum -y install lcmaps lcmaps-db-templates xrootd-lcmaps vo-client vo-client-lcmaps-voms && \
     yum -y install xrootd-server --enablerepo=osg-testing && \
     yum -y update xrootd* --enablerepo=osg-testing && \
     yum -y install supervisor

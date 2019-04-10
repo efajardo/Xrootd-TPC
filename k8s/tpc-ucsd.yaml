@@ -1,0 +1,104 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: xrootd-tpc
+  name: tpc-ucsd
+  namespace: osg
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: xrootd-tpc
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        kubernetes.io/hostname: stashcache.t2.ucsd.edu
+      initContainers:
+      - name: chowndata
+        image: busybox
+        command: ["sh", "-c", "chown -R 999:997 /nvme*"]
+        volumeMounts:
+        - name: datavol1
+          mountPath: /nvme1
+        - name: datavol2
+          mountPath: /nvme2
+        - name: datavol3
+          mountPath: /nvme3
+        - name: datavol4
+          mountPath: /nvme4
+        - name: datavol5
+          mountPath: /nvme5
+        - name: datavol6
+          mountPath: /nvme6
+      containers:
+      - name: stashcache
+        resources:
+           limits:
+              memory: 14Gi
+           requests:
+              memory: 10Gi
+        image: efajardo/xrootd-tpc
+        #command: ["sh", "-c", "sleep infinity"]
+        env:
+        - name: XRDHTTPPORT
+          value: "9002"
+        - name: SITENAME
+          value: UCSD-XrootTPC-PRP
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: hostcert
+          mountPath: /etc/grid-security/hostcert.pem
+        - name: hostkey
+          mountPath: /etc/grid-security/hostkey.pem
+        - name: config
+          mountPath: /etc/xrootd
+        - name: datavol1
+          mountPath: /nvme1
+        - name: datavol2
+          mountPath: /nvme2
+        - name: datavol3
+          mountPath: /nvme3
+        - name: datavol4
+          mountPath: /nvme4
+        - name: datavol5
+          mountPath: /nvme5
+        - name: datavol6
+          mountPath: /nvme6
+      volumes:
+      - name : hostcert
+        hostPath:
+           path: /etc/grid-security/hostcert.pem
+           type: File
+      - name : hostkey
+        hostPath:
+           path: /etc/grid-security/hostkey.pem
+           type: File
+      - name: config
+        configMap:
+          name: xrootd-tpc
+      - name: datavol1
+        hostPath:
+          path: /nvme1
+          type: Directory
+      - name: datavol2
+        hostPath:
+          path: /nvme2
+          type: Directory
+      - name: datavol3
+        hostPath:
+          path: /nvme3
+          type: Directory
+      - name: datavol4
+        hostPath:
+          path: /nvme4
+          type: Directory
+      - name: datavol5
+        hostPath:
+          path: /nvme5
+          type: Directory
+      - name: datavol6
+        hostPath:
+          path: /nvme6
+          type: Directory
