@@ -12,6 +12,8 @@ RUN yum -y install http://repo.opensciencegrid.org/osg/3.4/osg-3.4-el7-release-l
 ADD fetch-crl-kubernetes /etc/cron.d/fetch-crl-kubernetes
 ADD fix_certs.sh /usr/local/sbin/fix_certs.sh
 
+RUN adduser tpcuser
+
 RUN mkdir -p /var/log/supervisor
 ADD supervisord.conf /etc/supervisord.conf
 
