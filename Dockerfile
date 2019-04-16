@@ -10,7 +10,8 @@ RUN yum -y install http://repo.opensciencegrid.org/osg/3.4/osg-3.4-el7-release-l
     yum -y install openssl && \
     yum -y install supervisor
 
-RUN yum -y install xrootd-macaroons --enablerepo=osg-contrib
+RUN yum -y install xrootd-macaroons --enablerepo=osg-contrib && \
+    yum -y install xrootd-tpc --enablerepo=osg-contrib
 
 ADD fetch-crl-kubernetes /etc/cron.d/fetch-crl-kubernetes
 ADD fix_certs.sh /usr/local/sbin/fix_certs.sh
