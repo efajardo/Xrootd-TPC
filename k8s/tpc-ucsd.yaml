@@ -36,16 +36,18 @@ spec:
       - name: stashcache
         resources:
            limits:
-              memory: 14Gi
+              memory: 2Gi
+              cpu: 6
            requests:
-              memory: 10Gi
+              memory: 1Gi
+              cpu: 6
         image: efajardo/xrootd-tpc
         #command: ["sh", "-c", "sleep infinity"]
         env:
         - name: XRDHTTPPORT
           value: "9002"
         - name: SITENAME
-          value: XrootdTPCPRP
+          value: "TPCUCSD"
         imagePullPolicy: Always
         volumeMounts:
         - name: hostcert
