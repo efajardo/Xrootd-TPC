@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     k8s-app: xrootd-tpc
-  name: tpc-ucsd
+  name: tpc-greatplains
   namespace: osg
 spec:
   replicas: 1
@@ -14,24 +14,13 @@ spec:
     spec:
       hostNetwork: true
       nodeSelector:
-        kubernetes.io/hostname: stashcache.t2.ucsd.edu
+        kubernetes.io/hostname: osg.kans.nrp.internet2.edu
       initContainers:
       - name: chowndata
         image: busybox
-        command: ["sh", "-c", "chown -R 999:997 /nvme*"]
         volumeMounts:
-        - name: datavol1
-          mountPath: /nvme1
-        - name: datavol2
-          mountPath: /nvme2
-        - name: datavol3
-          mountPath: /nvme3
-        - name: datavol4
-          mountPath: /nvme4
-        - name: datavol5
-          mountPath: /nvme5
-        - name: datavol6
-          mountPath: /nvme6
+        - name: datavol
+          mountPath: /data/stash
       containers:
       - name: stashcache
         resources:
@@ -54,18 +43,8 @@ spec:
           mountPath: /etc/grid-security/hostkey.pem
         - name: config
           mountPath: /etc/xrootd
-        - name: datavol1
-          mountPath: /nvme1
-        - name: datavol2
-          mountPath: /nvme2
-        - name: datavol3
-          mountPath: /nvme3
-        - name: datavol4
-          mountPath: /nvme4
-        - name: datavol5
-          mountPath: /nvme5
-        - name: datavol6
-          mountPath: /nvme6
+        - name: datavol
+          mountPath: /data/stash
         - name: secret-key
           mountPath: "/etc/xrootd/security"
           readOnly: true
@@ -84,27 +63,7 @@ spec:
       - name: config
         configMap:
           name: xrootd-tpc
-      - name: datavol1
+      - name: datavol
         hostPath:
-          path: /nvme1
-          type: Directory
-      - name: datavol2
-        hostPath:
-          path: /nvme2
-          type: Directory
-      - name: datavol3
-        hostPath:
-          path: /nvme3
-          type: Directory
-      - name: datavol4
-        hostPath:
-          path: /nvme4
-          type: Directory
-      - name: datavol5
-        hostPath:
-          path: /nvme5
-          type: Directory
-      - name: datavol6
-        hostPath:
-          path: /nvme6
+          path: /tank
           type: Directory
