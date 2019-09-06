@@ -12,7 +12,8 @@ RUN yum -y install http://repo.opensciencegrid.org/osg/3.4/osg-3.4-el7-release-l
 
 ADD fetch-crl-kubernetes /etc/cron.d/fetch-crl-kubernetes
 ADD fix_certs.sh /usr/local/sbin/fix_certs.sh
-
+# Dekuberntizie it to be pretty much docker only
+ADD xrootd-third-party-copy.cfg /etc/xrootd/xrootd-third-party-copy.cfg
 RUN adduser tpcuser
 
 RUN mkdir -p /var/log/supervisor

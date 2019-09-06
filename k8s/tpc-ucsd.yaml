@@ -18,7 +18,7 @@ spec:
       initContainers:
       - name: chowndata
         image: busybox
-        command: ["sh", "-c", "chown -R 999:997 /nvme*"]
+        command: ["sh", "-c", "chown -R 999:998 /nvme*"]
         volumeMounts:
         - name: datavol1
           mountPath: /nvme1
@@ -32,6 +32,8 @@ spec:
           mountPath: /nvme5
         - name: datavol6
           mountPath: /nvme6
+        - name: datavol7
+          mountPath: /nvme7
       containers:
       - name: stashcache
         resources:
@@ -68,6 +70,8 @@ spec:
           mountPath: /nvme5
         - name: datavol6
           mountPath: /nvme6
+        - name: datavol6
+          mountPath: /nvme7
         - name: secret-key
           mountPath: "/etc/xrootd/security"
           readOnly: true
@@ -109,4 +113,8 @@ spec:
       - name: datavol6
         hostPath:
           path: /nvme6
+          type: Directory
+      - name: datavol7
+        hostPath:
+          path: /nvme7
           type: Directory

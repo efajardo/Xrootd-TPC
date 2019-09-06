@@ -1,2 +1,2 @@
-u tpcuser /data/stash/ a /nvme1/ a /nvme2/ a /nvme3/ a /nvme4 a /nvme5 a
+u tpcuser /data/stash/ a /nvme1/ a /nvme2/ a /nvme3/ a /nvme4 a /nvme5 a /nvme6 a /nvme7 a /dev/ a
 u ? /data/stash/ w
