@@ -18,5 +18,5 @@ RUN adduser tpcuser
 
 RUN mkdir -p /var/log/supervisor
 ADD supervisord.conf /etc/supervisord.conf
-
+EXPOSE 9002
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"] 
