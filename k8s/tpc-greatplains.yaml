@@ -1,71 +1,92 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
+  creationTimestamp: null
   labels:
     k8s-app: xrootd-tpc
   name: tpc-greatplains
-  namespace: osg
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: xrootd-tpc
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
       labels:
         k8s-app: xrootd-tpc
     spec:
-      hostNetwork: true
-      nodeSelector:
-        kubernetes.io/hostname: osg.kans.nrp.internet2.edu
-      initContainers:
-      - name: chowndata
-        image: busybox
-        volumeMounts:
-        - name: datavol
-          mountPath: /data/stash
       containers:
-      - name: stashcache
-        resources:
-           limits:
-              memory: 3Gi
-              cpu: 6
-           requests:
-              memory: 2Gi
-              cpu: 6
-        image: efajardo/xrootd-tpc
-        #command: ["sh", "-c", "sleep infinity"]
-        env:
+      - env:
         - name: XRDHTTPPORT
           value: "9002"
         - name: SITENAME
-          value: "TPC-KC" 
+          value: TPC-KC
+        image: efajardo/xrootd-tpc:latest
         imagePullPolicy: Always
+        name: tpc
+        resources:
+          limits:
+            cpu: 6
+            memory: 30Gi
+          requests:
+            cpu: 4
+            memory: 20Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: hostcert
-          mountPath: /etc/grid-security/hostcert.pem
-        - name: hostkey
-          mountPath: /etc/grid-security/hostkey.pem
-        #- name: config
-        #  mountPath: /etc/xrootd
-        - name: datavol
-          mountPath: /data/stash
-        - name: secret-key
-          mountPath: "/etc/xrootd/security"
+        - mountPath: /etc/grid-security/hostcert.pem
+          name: hostcert
+        - mountPath: /etc/grid-security/hostkey.pem
+          name: hostkey
+        - mountPath: /data/stash
+          name: datavol
+        - mountPath: /etc/xrootd/security
+          name: secret-key
           readOnly: true
+        - mountPath: /etc/xrootd/config.d/10-tpc-tunning.cfg
+          name: config10
+          subPath: 10-tpc-tunning.cfg
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      initContainers:
+      - image: busybox
+        imagePullPolicy: Always
+        name: chowndata
+        volumeMounts:
+        - mountPath: /data/stash
+          name: datavol
+      nodeSelector:
+        kubernetes.io/hostname: osg.kans.nrp.internet2.edu
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
       volumes:
-      - name : secret-key
-        secret: 
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: 10-tpc-tunning.cfg
+            path: 10-tpc-tunning.cfg
+          name: xrootd-tpc
+        name: config10
+      - name: secret-key
+        secret:
+          defaultMode: 420
           secretName: secretkey
-      - name : hostcert
-        hostPath:
-           path: /etc/grid-security/hostcert.pem
-           type: File
-      - name : hostkey
-        hostPath:
-           path: /etc/grid-security/hostkey.pem
-           type: File
-      #- name: config
-      #  configMap:
-      #    name: xrootd-tpc
-      - name: datavol
-        hostPath:
+      - hostPath:
+          path: /etc/grid-security/hostcert.pem
+          type: File
+        name: hostcert
+      - hostPath:
+          path: /etc/grid-security/hostkey.pem
+          type: File
+        name: hostkey
+      - hostPath:
           path: /tank
           type: Directory
+        name: datavol

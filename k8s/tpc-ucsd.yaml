@@ -1,120 +1,138 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     k8s-app: xrootd-tpc
   name: tpc-ucsd
-  namespace: osg
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: xrootd-tpc
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
         k8s-app: xrootd-tpc
     spec:
-      hostNetwork: true
-      nodeSelector:
-        kubernetes.io/hostname: stashcache.t2.ucsd.edu
-      initContainers:
-      - name: chowndata
-        image: busybox
-        command: ["sh", "-c", "chown -R 999:998 /nvme*"]
-        volumeMounts:
-        - name: datavol1
-          mountPath: /nvme1
-        - name: datavol2
-          mountPath: /nvme2
-        - name: datavol3
-          mountPath: /nvme3
-        - name: datavol4
-          mountPath: /nvme4
-        - name: datavol5
-          mountPath: /nvme5
-        - name: datavol6
-          mountPath: /nvme6
-        - name: datavol7
-          mountPath: /nvme7
       containers:
-      - name: stashcache
-        resources:
-           limits:
-              memory: 2Gi
-              cpu: 6
-           requests:
-              memory: 1Gi
-              cpu: 6
-        image: efajardo/xrootd-tpc
-        #command: ["sh", "-c", "sleep infinity"]
-        env:
+      - env:
         - name: XRDHTTPPORT
           value: "9002"
         - name: SITENAME
-          value: "TPCUCSD"
+          value: TPCUCSD
+        image: efajardo/xrootd-tpc
         imagePullPolicy: Always
+        name: tpc
+        resources:
+          limits:
+            cpu: 30
+            memory: 120Gi
+          requests:
+            cpu: 20
+            memory: 80Gi
         volumeMounts:
-        - name: hostcert
-          mountPath: /etc/grid-security/hostcert.pem
-        - name: hostkey
-          mountPath: /etc/grid-security/hostkey.pem
-        - name: config
-          mountPath: /etc/xrootd
-        - name: datavol1
-          mountPath: /nvme1
-        - name: datavol2
-          mountPath: /nvme2
-        - name: datavol3
-          mountPath: /nvme3
-        - name: datavol4
-          mountPath: /nvme4
-        - name: datavol5
-          mountPath: /nvme5
-        - name: datavol6
-          mountPath: /nvme6
-        - name: datavol6
-          mountPath: /nvme7
-        - name: secret-key
-          mountPath: "/etc/xrootd/security"
+        - mountPath: /etc/grid-security/hostcert.pem
+          name: hostcert
+        - mountPath: /etc/grid-security/hostkey.pem
+          name: hostkey
+        - mountPath: /nvme1
+          name: datavol1
+        - mountPath: /nvme2
+          name: datavol2
+        - mountPath: /nvme3
+          name: datavol3
+        - mountPath: /nvme4
+          name: datavol4
+        - mountPath: /nvme5
+          name: datavol5
+        - mountPath: /nvme6
+          name: datavol6
+        - mountPath: /nvme7
+          name: datavol6
+        - mountPath: /etc/xrootd/security
+          name: secret-key
           readOnly: true
+        - mountPath: /etc/xrootd/config.d/10-tpc-tunning.cfg
+          name: config10
+          subPath: 10-tpc-tunning.cfg
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      initContainers:
+      - command: ["sh", "-c","chown -R 999:998 /nvme*"]
+        image: busybox
+        imagePullPolicy: Always
+        name: chowndata
+        volumeMounts:
+        - mountPath: /nvme1
+          name: datavol1
+        - mountPath: /nvme2
+          name: datavol2
+        - mountPath: /nvme3
+          name: datavol3
+        - mountPath: /nvme4
+          name: datavol4
+        - mountPath: /nvme5
+          name: datavol5
+        - mountPath: /nvme6
+          name: datavol6
+        - mountPath: /nvme7
+          name: datavol7
+      nodeSelector:
+        kubernetes.io/hostname: stashcache.t2.ucsd.edu
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
       volumes:
-      - name : secret-key
-        secret: 
+      - name: secret-key
+        secret:
+          defaultMode: 420
           secretName: secretkey
-      - name : hostcert
-        hostPath:
-           path: /etc/grid-security/hostcert.pem
-           type: File
-      - name : hostkey
-        hostPath:
-           path: /etc/grid-security/hostkey.pem
-           type: File
-      - name: config
-        configMap:
+      - hostPath:
+          path: /etc/grid-security/hostcert.pem
+          type: File
+        name: hostcert
+      - hostPath:
+          path: /etc/grid-security/hostkey.pem
+          type: File
+        name: hostkey
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: 10-tpc-tunning.cfg
+            path: 10-tpc-tunning.cfg
           name: xrootd-tpc
-      - name: datavol1
-        hostPath:
+        name: config10
+      - hostPath:
           path: /nvme1
           type: Directory
-      - name: datavol2
-        hostPath:
+        name: datavol1
+      - hostPath:
           path: /nvme2
           type: Directory
-      - name: datavol3
-        hostPath:
+        name: datavol2
+      - hostPath:
           path: /nvme3
           type: Directory
-      - name: datavol4
-        hostPath:
+        name: datavol3
+      - hostPath:
           path: /nvme4
           type: Directory
-      - name: datavol5
-        hostPath:
+        name: datavol4
+      - hostPath:
           path: /nvme5
           type: Directory
-      - name: datavol6
-        hostPath:
+        name: datavol5
+      - hostPath:
           path: /nvme6
           type: Directory
-      - name: datavol7
-        hostPath:
+        name: datavol6
+      - hostPath:
           path: /nvme7
           type: Directory
+        name: datavol7
