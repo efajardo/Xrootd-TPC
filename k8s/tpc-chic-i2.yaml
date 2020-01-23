@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    k8s-app: xrootd-tpc
+  name: tpc-chic-i2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: xrootd-tpc
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        k8s-app: xrootd-tpc
+    spec:
+      containers:
+      - env:
+        - name: XRDHTTPPORT
+          value: "9002"
+        - name: SITENAME
+          value: TPC-KC
+        image: efajardo/xrootd-tpc:latest
+        imagePullPolicy: Always
+        name: tpc
+        resources:
+          limits:
+            cpu: 12
+            memory: 30Gi
+          requests:
+            cpu: 10
+            memory: 20Gi
+        volumeMounts:
+        - mountPath: /tank
+          name: datavol
+        - mountPath: /etc/xrootd/config.d/90-supercomputing-chicago.cfg
+          name: config-chic
+          subPath: 90-supercomputing-chicago.cfg
+        - mountPath: /etc/xrootd/supercomputing-authfile
+          name: supercomputing-authfile
+          subPath: supercomputing-authfile
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      initContainers:
+      - image: busybox
+        imagePullPolicy: Always
+        name: chowndata
+        volumeMounts:
+        - mountPath: /data/stash
+          name: datavol
+      nodeSelector:
+        kubernetes.io/hostname: osg.chic.nrp.internet2.edu
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: 10-tpc-tunning.cfg
+            path: 10-tpc-tunning.cfg
+          name: xrootd-tpc
+        name: config10
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: 90-supercomputing-chicago.cfg
+            path: 90-supercomputing-chicago.cfg
+          name: xrootd-tpc-chic
+        name: config-chic
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: supercomputing-authfile
+            path: supercomputing-authfile
+          name: xrootd-tpc-chic
+        name: supercomputing-authfile
+      - hostPath:
+          path: /tank
+          type: Directory
+        name: datavol
